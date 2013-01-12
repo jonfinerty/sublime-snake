@@ -1,3 +1,7 @@
+#	Created by jon finerty - 2013
+#	
+#
+
 import sublime, sublime_plugin, time  
 
 snakeDirection = 'right'
