@@ -1,0 +1,9 @@
+[  
+    {  
+        "keys": ["ctrl+shift+alt+s"], "command": "snake"
+    },
+    { "keys": ["left"], "command": "set_snake_left" },
+	{ "keys": ["right"], "command": "set_snake_right" },
+	{ "keys": ["up"], "command": "set_snake_up" },
+	{ "keys": ["down"], "command": "set_snake_down" }
+]

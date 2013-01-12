@@ -1,0 +1,5 @@
+[  
+    {  
+        "keys": ["ctrl+shift+alt+s"], "command": "snake"
+    }  
+]
