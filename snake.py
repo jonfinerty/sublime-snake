@@ -159,13 +159,13 @@ def renderSnake(snakeView, snake, snakeHeadIndex, updateSpeed):
 		else : #grow snake			
 			score = score + 1
 			snakeHeadIndex = snakeHeadIndex + 1
-		 	snake.insert(snakeHeadIndex, newPoint)
-		 	if (updateSpeed > 1) :
+			snake.insert(snakeHeadIndex, newPoint)
+			if (updateSpeed > 1) :
 				updateSpeed = updateSpeed*speedIncreaseRate
-		 	
+			
 		snakeView.end_edit(edit)
 		
-		sublime.status_message("Score: " + str(updateSpeed))
+		sublime.status_message("Score: " + str(score))
 		sublime.set_timeout(lambda: renderSnake(snakeView, snake, snakeHeadIndex, updateSpeed), int(updateSpeed))
 	else :
 		# reset arrow key functionality
