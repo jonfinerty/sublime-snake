@@ -1,4 +1,4 @@
-sublime-snake
+Sublime Snake
 =============
 
 Snake for Sublime Text 2
