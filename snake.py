@@ -97,7 +97,10 @@ class SnakeCommand(sublime_plugin.TextCommand):
             # replace tabs with spaces
             edit = snakeView.begin_edit()
             snakeStartingX, snakeStartingY = snakeView.rowcol(pos[0].a)
-            snakeView.run_command("expand_tabs", {"set_translate_tabs": True})
+            # expand tabs tends to break stuff, check for tabs first?
+            tabs = snakeView.find("\t", 0)
+            if tabs != None:
+                snakeView.run_command("expand_tabs", {"set_translate_tabs": True})
             snakeView.end_edit(edit)
 
             # find longest line
@@ -119,6 +122,10 @@ class SnakeCommand(sublime_plugin.TextCommand):
                                 paddingString)
                 totalPaddingOffset = totalPaddingOffset + paddingSize
             snakeView.end_edit(edit)
+
+            # set word wrap to maximum line length, otherwise pain
+            snakeView.settings().set("wrap_width", 0)
+            snakeView.settings().set("word_wrap", False)
 
             # Add border to bottom of code so its more obvious
             edit = snakeView.begin_edit()
@@ -145,6 +152,8 @@ class SnakeCommand(sublime_plugin.TextCommand):
                 snakeView.replace(edit, segmentRegion, u"\u2588")
             snakeView.end_edit(edit)
             snakeView.show_at_center(snakeStartingPoint)
+
+            # start snake update timeout loop
             sublime.set_timeout(lambda: renderSnake(snakeView,
                                                     snake,
                                                     snakeHeadIndex,
@@ -211,7 +220,6 @@ def renderSnake(snakeView, snake, snakeHeadIndex, updateSpeed):
         snakeView.end_edit(edit)
 
         sublime.status_message("SNAKE_SCORE: " + str(SNAKE_SCORE))
-        sublime.status_message(str(SNAKE_X_BOUNDARY) + "" + str(SNAKE_Y_BOUNDARY))
         sublime.set_timeout(lambda: renderSnake(snakeView,
                                                 snake,
                                                 snakeHeadIndex,
