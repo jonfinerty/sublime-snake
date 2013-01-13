@@ -8,6 +8,7 @@ import sublime_plugin
 # GLOBAL SETTINGS
 SNAKE_ON = False
 SNAKE_DIRECTION = 'right'
+SNAKE_INTENDED_DIRECTION = 'right'
 SNAKE_SCORE = 0
 SNAKE_STARTING_LENGTH = 10
 SNAKE_STARTING_SPEED = 100
@@ -29,9 +30,9 @@ SNAKE_TAIL_DOWN = u"\u25B2"
 # OVERWRITE ARROW KEYS - but pass through to old commands
 class set_snake_rightCommand(sublime_plugin.TextCommand):
     def run(self, edit):
-        global SNAKE_DIRECTION
+        global SNAKE_DIRECTION, SNAKE_INTENDED_DIRECTION
         if SNAKE_DIRECTION != 'left':
-            SNAKE_DIRECTION = 'right'
+            SNAKE_INTENDED_DIRECTION = 'right'
         if SNAKE_ON == False:
             self.view.run_command("move", {
                                     "by": "characters",
@@ -41,9 +42,9 @@ class set_snake_rightCommand(sublime_plugin.TextCommand):
 
 class set_snake_leftCommand(sublime_plugin.TextCommand):
     def run(self, edit):
-        global SNAKE_DIRECTION
+        global SNAKE_DIRECTION, SNAKE_INTENDED_DIRECTION
         if SNAKE_DIRECTION != 'right':
-            SNAKE_DIRECTION = 'left'
+            SNAKE_INTENDED_DIRECTION = 'left'
         if SNAKE_ON == False:
             self.view.run_command("move", {
                                     "by": "characters",
@@ -53,9 +54,9 @@ class set_snake_leftCommand(sublime_plugin.TextCommand):
 
 class set_snake_upCommand(sublime_plugin.TextCommand):
     def run(self, edit):
-        global SNAKE_DIRECTION
+        global SNAKE_DIRECTION, SNAKE_INTENDED_DIRECTION
         if SNAKE_DIRECTION != 'down':
-            SNAKE_DIRECTION = 'up'
+            SNAKE_INTENDED_DIRECTION = 'up'
         if SNAKE_ON == False:
             self.view.run_command("move", {
                                     "by": "lines",
@@ -65,9 +66,9 @@ class set_snake_upCommand(sublime_plugin.TextCommand):
 
 class set_snake_downCommand(sublime_plugin.TextCommand):
     def run(self, edit):
-        global SNAKE_DIRECTION
+        global SNAKE_DIRECTION, SNAKE_INTENDED_DIRECTION
         if SNAKE_DIRECTION != 'up':
-            SNAKE_DIRECTION = 'down'
+            SNAKE_INTENDED_DIRECTION = 'down'
         if SNAKE_ON == False:
             self.view.run_command("move", {
                                     "by": "lines",
@@ -78,11 +79,12 @@ class set_snake_downCommand(sublime_plugin.TextCommand):
 class SnakeCommand(sublime_plugin.TextCommand):
     def run(self, edit):
         global SNAKE_ON, SNAKE_SCORE, SNAKE_X_BOUNDARY, SNAKE_Y_BOUNDARY
-        global SNAKE_DIRECTION, SNAKE_GROWTH_PROGRESS
+        global SNAKE_DIRECTION, SNAKE_INTENDED_DIRECTION, SNAKE_GROWTH_PROGRESS
 
         # reset stuff
         SNAKE_SCORE = 0
         SNAKE_DIRECTION = "right"
+        SNAKE_INTENDED_DIRECTION = "right"
         SNAKE_GROWTH_PROGRESS = 0
 
         if SNAKE_ON == False:
@@ -176,22 +178,24 @@ class SnakeCommand(sublime_plugin.TextCommand):
 
 
 def renderSnake(snakeView, snake, snakeHeadIndex, updateSpeed):
-    global SNAKE_DIRECTION, SNAKE_ON, SNAKE_SCORE, SNAKE_X_BOUNDARY, SNAKE_X_BOUNDARY
-    global SNAKE_GROWTH_RATE, SNAKE_GROWTH_PROGRESS
+    global SNAKE_ON, SNAKE_SCORE, SNAKE_X_BOUNDARY, SNAKE_X_BOUNDARY
+    global SNAKE_GROWTH_RATE, SNAKE_GROWTH_PROGRESS, SNAKE_DIRECTION, SNAKE_INTENDED_DIRECTION
 
     if SNAKE_ON:
         SNAKE_SCORE = SNAKE_SCORE + 1
 
         # Get position of cell to be eaten
         newPosX, newPosY = snakeView.rowcol(snake[snakeHeadIndex])
-        if SNAKE_DIRECTION == "right":
+        if SNAKE_INTENDED_DIRECTION == "right":
             newPosY = newPosY + 1
-        elif SNAKE_DIRECTION == "left":
+        elif SNAKE_INTENDED_DIRECTION == "left":
             newPosY = newPosY - 1
-        elif SNAKE_DIRECTION == "up":
+        elif SNAKE_INTENDED_DIRECTION == "up":
             newPosX = newPosX - 1
         else:
             newPosX = newPosX + 1
+
+        SNAKE_DIRECTION = SNAKE_INTENDED_DIRECTION
 
         newPoint = snakeView.text_point(newPosX, newPosY)
 
