@@ -93,7 +93,7 @@ class SnakeCommand(sublime_plugin.TextCommand):
             snakeView.set_name("SNAKE")
             window.focus_view(snakeView)
             edit = snakeView.begin_edit()
-            snakeView.insert(edit, 0, fileText)
+            snakeView.insert(edit, 0, fileText + "\n")
             snakeView.end_edit(edit)
             snakeView.set_syntax_file(syntax)
 
