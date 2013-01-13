@@ -11,7 +11,7 @@ SNAKE_DIRECTION = 'right'
 SNAKE_INTENDED_DIRECTION = 'right'
 SNAKE_SCORE = 0
 SNAKE_STARTING_LENGTH = 10
-SNAKE_STARTING_SPEED = 100
+SNAKE_STARTING_SPEED = 80
 SNAKE_SPEED_INCREASE_RATE = 0.98
 SNAKE_GROWTH_RATE = 2  # for every X characters the snake will grow 1 segment
 SNAKE_GROWTH_PROGRESS = 0
@@ -100,6 +100,7 @@ class SnakeCommand(sublime_plugin.TextCommand):
             fileText = templateView.substr(entireFileRegion)
             syntax = templateView.settings().get('syntax')
             pos = templateView.sel()
+            tabSize = templateView.settings().get('tab_size')
 
             # copy across and set syntax
             snakeView = window.new_file()
@@ -115,9 +116,11 @@ class SnakeCommand(sublime_plugin.TextCommand):
             edit = snakeView.begin_edit()
             snakeStartingX, snakeStartingY = snakeView.rowcol(pos[0].a)
             # expand tabs tends to break stuff, check for tabs first?
-            tabs = snakeView.find("\t", 0)
-            if tabs != None:
-                snakeView.run_command("expand_tabs", {"set_translate_tabs": True})
+            tabs = snakeView.find_all("\t")
+            tabReplacement = " " * tabSize
+            for tab in tabs:
+                tabActualLocation = snakeView.find("\t", tab.a)
+                snakeView.replace(edit, tabActualLocation, tabReplacement)
             snakeView.end_edit(edit)
 
             # find longest line
@@ -228,7 +231,7 @@ def renderSnake(snakeView, snake, snakeHeadIndex, updateSpeed):
             SNAKE_SCORE = SNAKE_SCORE + 1
             snakeHeadIndex = snakeHeadIndex + 1
             snake.insert(snakeHeadIndex, newPoint)
-            if (updateSpeed > 1):
+            if (updateSpeed > 10):
                 updateSpeed = updateSpeed * SNAKE_SPEED_INCREASE_RATE
             SNAKE_GROWTH_PROGRESS = 0
         else:
