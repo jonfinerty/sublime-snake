@@ -15,6 +15,14 @@ SNAKE_SPEED_INCREASE_RATE = 0.99
 SNAKE_X_BOUNDARY = 0
 SNAKE_Y_BOUNDARY = 0
 
+# AMAZING SNAKE GRAPHICS
+SNAKE_HEAD = "H"
+SNAKE_SEGMENT = u"\u2588"
+SNAKE_TAIL_LEFT = u"\u25BA"
+SNAKE_TAIL_RIGHT = u"\u25C4"
+SNAKE_TAIL_UP = u"\u25BC"
+SNAKE_TAIL_DOWN = u"\u25B2"
+
 
 # OVERWRITE ARROW KEYS - but pass through to old commands
 class set_snake_rightCommand(sublime_plugin.TextCommand):
@@ -149,11 +157,10 @@ class SnakeCommand(sublime_plugin.TextCommand):
             updateSpeed = SNAKE_STARTING_SPEED
 
             # draw initial snake
-            edit = snakeView.begin_edit()
-            for segment in snake:
-                segmentRegion = sublime.Region(segment, segment + 1)
-                snakeView.replace(edit, segmentRegion, u"\u2588")
-            snakeView.end_edit(edit)
+            drawSnakeTail(snakeView, snake[0], snake[1])
+            for segment in snake[1:-1]:
+                drawSnakeSegment(snakeView, segment)
+            drawSnakeHead(snakeView, snake[-1])
             snakeView.show_at_center(snakeStartingPoint)
 
             # start snake update timeout loop
@@ -167,6 +174,7 @@ class SnakeCommand(sublime_plugin.TextCommand):
 
 def renderSnake(snakeView, snake, snakeHeadIndex, updateSpeed):
     global SNAKE_DIRECTION, SNAKE_ON, SNAKE_SCORE, SNAKE_X_BOUNDARY, SNAKE_X_BOUNDARY
+    global SNAKE_SEGMENT, SNAKE_HEAD
 
     if SNAKE_ON:
         SNAKE_SCORE = SNAKE_SCORE + 1
@@ -193,9 +201,14 @@ def renderSnake(snakeView, snake, snakeHeadIndex, updateSpeed):
         snakeView.show_at_center(newPoint)
         eatenChar = snakeView.substr(newPoint)
 
-        # draw head
+        # draw new head
         newPointRegion = sublime.Region(newPoint, newPoint + 1)
-        snakeView.replace(edit, newPointRegion, u"\u2588")
+        snakeView.replace(edit, newPointRegion, SNAKE_HEAD)
+
+        # redraw old head
+        oldHeadPoint = snake[snakeHeadIndex]
+        oldHeadRegion = sublime.Region(oldHeadPoint, oldHeadPoint + 1)
+        snakeView.replace(edit, oldHeadRegion, SNAKE_SEGMENT)
 
         # see if lost by eating oneself
         for segment in snake:
@@ -206,9 +219,22 @@ def renderSnake(snakeView, snake, snakeHeadIndex, updateSpeed):
             tailIndex = snakeHeadIndex + 1
             if tailIndex >= len(snake):
                 tailIndex = 0
-            tailPos = snake[tailIndex]
-            tailRegion = sublime.Region(tailPos, tailPos + 1)
-            snakeView.replace(edit, tailRegion, " ")
+            # clear old tail
+            clearPosition(snakeView, snake[tailIndex])
+
+            # draw new tail
+            if tailIndex + 1 >= len(snake):
+                newTailIndex = 0
+            else:
+                newTailIndex = tailIndex + 1
+            if newTailIndex + 1 >= len(snake):  # refactor this tripe
+                newTailContext = 0
+            else:
+                newTailContext = newTailIndex + 1
+
+            drawSnakeTail(snakeView, snake[newTailIndex], snake[newTailContext])
+
+            # update head index
             snakeHeadIndex = tailIndex
             snake[snakeHeadIndex] = newPoint
         elif eatenChar == "\n":  # eaten a wall, die
@@ -238,3 +264,40 @@ def gameOver():
     sublime.error_message("Game Over!\nYour SNAKE_SCORE was: " +
                           str(SNAKE_SCORE))
     SNAKE_ON = False
+
+
+def drawSnakeTail(snakeView, tailPos, nextSegPos):
+    global SNAKE_TAIL
+    # work out how tail joins to body, to pick correct
+    # orientation tail graphics
+    tailX, tailY = snakeView.rowcol(tailPos)
+    segX, segY = snakeView.rowcol(nextSegPos)
+    if segX > tailX:
+        editPosition(snakeView, tailPos, SNAKE_TAIL_DOWN)
+    elif segX < tailX:
+        editPosition(snakeView, tailPos, SNAKE_TAIL_UP)
+    elif segY > tailY:
+        editPosition(snakeView, tailPos, SNAKE_TAIL_RIGHT)
+    else:
+        editPosition(snakeView, tailPos, SNAKE_TAIL_LEFT)
+
+
+def drawSnakeSegment(snakeView, segPos):
+    global SNAKE_SEGMENT
+    editPosition(snakeView, segPos, SNAKE_SEGMENT)
+
+
+def drawSnakeHead(snakeView, headPos):
+    global SNAKE_HEAD
+    editPosition(snakeView, headPos, SNAKE_HEAD)
+
+
+def clearPosition(snakeView, position):
+    editPosition(snakeView, position, " ")
+
+
+def editPosition(snakeView, position, symbol):
+    edit = snakeView.begin_edit()
+    region = sublime.Region(position, position + 1)
+    snakeView.replace(edit, region, symbol)
+    snakeView.end_edit(edit)
