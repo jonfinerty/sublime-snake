@@ -12,7 +12,7 @@ SNAKE_SCORE = 0
 SNAKE_STARTING_LENGTH = 10
 SNAKE_STARTING_SPEED = 100
 SNAKE_SPEED_INCREASE_RATE = 0.99
-SNAKE_GROWTH_RATE = 4
+SNAKE_GROWTH_RATE = 2  # for every X characters the snake will grow 1 segment
 SNAKE_GROWTH_PROGRESS = 0
 SNAKE_X_BOUNDARY = 0
 SNAKE_Y_BOUNDARY = 0
@@ -77,11 +77,13 @@ class set_snake_downCommand(sublime_plugin.TextCommand):
 
 class SnakeCommand(sublime_plugin.TextCommand):
     def run(self, edit):
-        global SNAKE_ON, SNAKE_SCORE, SNAKE_X_BOUNDARY, SNAKE_Y_BOUNDARY, SNAKE_DIRECTION
+        global SNAKE_ON, SNAKE_SCORE, SNAKE_X_BOUNDARY, SNAKE_Y_BOUNDARY
+        global SNAKE_DIRECTION, SNAKE_GROWTH_PROGRESS
 
         # reset stuff
         SNAKE_SCORE = 0
         SNAKE_DIRECTION = "right"
+        SNAKE_GROWTH_PROGRESS = 0
 
         if SNAKE_ON == False:
 
@@ -180,9 +182,6 @@ def renderSnake(snakeView, snake, snakeHeadIndex, updateSpeed):
     if SNAKE_ON:
         SNAKE_SCORE = SNAKE_SCORE + 1
 
-        # 'Render' new snake position
-        edit = snakeView.begin_edit()
-
         # Get position of cell to be eaten
         newPosX, newPosY = snakeView.rowcol(snake[snakeHeadIndex])
         if SNAKE_DIRECTION == "right":
@@ -200,13 +199,11 @@ def renderSnake(snakeView, snake, snakeHeadIndex, updateSpeed):
         eatenChar = snakeView.substr(newPoint)
 
         # draw new head
-        newPointRegion = sublime.Region(newPoint, newPoint + 1)
-        snakeView.replace(edit, newPointRegion, SNAKE_HEAD)
+        drawSnakeHead(snakeView, newPoint)
 
         # redraw old head
         oldHeadPoint = snake[snakeHeadIndex]
-        oldHeadRegion = sublime.Region(oldHeadPoint, oldHeadPoint + 1)
-        snakeView.replace(edit, oldHeadRegion, SNAKE_SEGMENT)
+        drawSnakeSegment(snakeView, oldHeadPoint)
 
         # DEATH CONDITIONS
         # check boundary lose conditions
@@ -222,7 +219,16 @@ def renderSnake(snakeView, snake, snakeHeadIndex, updateSpeed):
         if eatenChar == "\n":
             gameOver()
 
-        if eatenChar == " ":  # don't grow
+        if eatenChar != " " and SNAKE_GROWTH_PROGRESS == (SNAKE_GROWTH_RATE - 1):  # grow snake
+            SNAKE_SCORE = SNAKE_SCORE + 1
+            snakeHeadIndex = snakeHeadIndex + 1
+            snake.insert(snakeHeadIndex, newPoint)
+            if (updateSpeed > 1):
+                updateSpeed = updateSpeed * SNAKE_SPEED_INCREASE_RATE
+            SNAKE_GROWTH_PROGRESS = 0
+        else:
+            if eatenChar != " ":
+                SNAKE_GROWTH_PROGRESS = SNAKE_GROWTH_PROGRESS + 1
             tailIndex = snakeHeadIndex + 1
             if tailIndex >= len(snake):
                 tailIndex = 0
@@ -244,14 +250,6 @@ def renderSnake(snakeView, snake, snakeHeadIndex, updateSpeed):
             # update head index
             snakeHeadIndex = tailIndex
             snake[snakeHeadIndex] = newPoint
-        else:  # grow snake
-            SNAKE_SCORE = SNAKE_SCORE + 1
-            snakeHeadIndex = snakeHeadIndex + 1
-            snake.insert(snakeHeadIndex, newPoint)
-            if (updateSpeed > 1):
-                updateSpeed = updateSpeed * SNAKE_SPEED_INCREASE_RATE
-
-        snakeView.end_edit(edit)
 
         sublime.status_message("SNAKE_SCORE: " + str(SNAKE_SCORE))
         sublime.set_timeout(lambda: renderSnake(snakeView,
