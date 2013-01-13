@@ -134,7 +134,7 @@ class SnakeCommand(sublime_plugin.TextCommand):
             edit = snakeView.begin_edit()
             SNAKE_Y_BOUNDARY = maxLineLength
             SNAKE_X_BOUNDARY = len(lines)
-            bottomBorder = ("_" * maxLineLength) + "|"
+            bottomBorder = ("_" * maxLineLength) + "|\n"
             snakeView.insert(edit, snakeView.size(), bottomBorder)
             snakeView.end_edit(edit)
 
