@@ -29,6 +29,7 @@ Use the arrow keys to navigate.
 * wrap around edges
 * make bottom of code more obvious
 * snake colour
+* make vertical speed consistent with horizontal
 
 ## Disclaimer?!
 

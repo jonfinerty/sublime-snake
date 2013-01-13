@@ -68,9 +68,11 @@ class set_snake_downCommand(sublime_plugin.TextCommand):
 
 class SnakeCommand(sublime_plugin.TextCommand):
     def run(self, edit):
-        global SNAKE_ON, SNAKE_SCORE, SNAKE_X_BOUNDARY, SNAKE_Y_BOUNDARY
+        global SNAKE_ON, SNAKE_SCORE, SNAKE_X_BOUNDARY, SNAKE_Y_BOUNDARY, SNAKE_DIRECTION
 
+        # reset stuff
         SNAKE_SCORE = 0
+        SNAKE_DIRECTION = "right"
 
         if SNAKE_ON == False:
 
@@ -140,7 +142,7 @@ class SnakeCommand(sublime_plugin.TextCommand):
             # consists of a set of positions (stored as text_points)
             snakeStartingPoint = snakeView.text_point(
                                     snakeStartingX,
-                                    1)
+                                    0)
             snakeEndingPoint = snakeStartingPoint + SNAKE_STARTING_LENGTH + 1
             snake = range(snakeStartingPoint, snakeEndingPoint)
             snakeHeadIndex = SNAKE_STARTING_LENGTH
