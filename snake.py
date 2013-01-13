@@ -22,7 +22,11 @@ class set_snake_rightCommand(sublime_plugin.TextCommand):
         if SNAKE_DIRECTION != 'left':
             SNAKE_DIRECTION = 'right'
         if SNAKE_ON == False:
-            self.view.run_command("move", {"by": "characters", "forward": True})
+            self.view.run_command("move", {
+                                    "by": "characters",
+                                    "forward": True
+                                 })
+
 
 class set_snake_leftCommand(sublime_plugin.TextCommand):
     def run(self, edit):
@@ -30,7 +34,11 @@ class set_snake_leftCommand(sublime_plugin.TextCommand):
         if SNAKE_DIRECTION != 'right':
             SNAKE_DIRECTION = 'left'
         if SNAKE_ON == False:
-            self.view.run_command("move", {"by": "characters", "forward": False})
+            self.view.run_command("move", {
+                                    "by": "characters",
+                                    "forward": False
+                                 })
+
 
 class set_snake_upCommand(sublime_plugin.TextCommand):
     def run(self, edit):
@@ -38,7 +46,11 @@ class set_snake_upCommand(sublime_plugin.TextCommand):
         if SNAKE_DIRECTION != 'down':
             SNAKE_DIRECTION = 'up'
         if SNAKE_ON == False:
-            self.view.run_command("move", {"by": "lines", "forward": False})
+            self.view.run_command("move", {
+                                    "by": "lines",
+                                    "forward": False
+                                 })
+
 
 class set_snake_downCommand(sublime_plugin.TextCommand):
     def run(self, edit):
@@ -46,7 +58,11 @@ class set_snake_downCommand(sublime_plugin.TextCommand):
         if SNAKE_DIRECTION != 'up':
             SNAKE_DIRECTION = 'down'
         if SNAKE_ON == False:
-            self.view.run_command("move", {"by": "lines", "forward": True})
+            self.view.run_command("move", {
+                                    "by": "lines",
+                                    "forward": True
+                                 })
+
 
 class SnakeCommand(sublime_plugin.TextCommand):
     def run(self, edit):
@@ -54,15 +70,16 @@ class SnakeCommand(sublime_plugin.TextCommand):
 
         SNAKE_SCORE = 0
 
-        if SNAKE_ON == False :
+        if SNAKE_ON == False:
 
             SNAKE_ON = True
 
-            templateView = self.view;
-            window = templateView.window();
+            templateView = self.view
+            window = templateView.window()
 
             # Set up copy of current window, so work is not lost.
-            fileText = templateView.substr(sublime.Region(0, templateView.size()))
+            entireFileRegion = sublime.Region(0, templateView.size())
+            fileText = templateView.substr(entireFileRegion)
             syntax = templateView.settings().get('syntax')
             pos = templateView.sel()
 
@@ -81,95 +98,109 @@ class SnakeCommand(sublime_plugin.TextCommand):
             snakeView.run_command("expand_tabs", {"set_translate_tabs": True})
             snakeView.end_edit(edit)
 
-            
-
-            # fill in file with spaces
-            lines = snakeView.split_by_newlines(sublime.Region(0, snakeView.size()))
+            # find longest line
+            entireSnakeViewRegion = sublime.Region(0, snakeView.size())
+            lines = snakeView.split_by_newlines(entireSnakeViewRegion)
             maxLineLength = 0
-            for line in lines :
+            for line in lines:
                 if line.size() > maxLineLength:
                     maxLineLength = line.size()
 
-            
             # add on nessacary space to end of lines
             edit = snakeView.begin_edit()
-            adjustment = 0
-            for line in lines :
+            totalPaddingOffset = 0
+            for line in lines:
                 paddingSize = (maxLineLength - line.size())
-                addOn = " " * paddingSize
-                snakeView.insert(edit, line.b+adjustment, addOn)
-                adjustment = adjustment+paddingSize
+                paddingString = " " * paddingSize
+                snakeView.insert(edit,
+                                line.b + totalPaddingOffset,
+                                paddingString)
+                totalPaddingOffset = totalPaddingOffset + paddingSize
             snakeView.end_edit(edit)
-            
-            
-            # Create default snake - consists of a set of positions (stored as text_points) 
-            snakeStartingPoint = snakeView.text_point(snakeStartingX, snakeStartingY)
-            snake = range(snakeStartingPoint, snakeStartingPoint+SNAKE_STARTING_LENGTH+1)
+
+            # Create default snake -
+            # consists of a set of positions (stored as text_points)
+            snakeStartingPoint = snakeView.text_point(
+                                    snakeStartingX,
+                                    snakeStartingY)
+            snakeEndingPoint = snakeStartingPoint + SNAKE_STARTING_LENGTH + 1
+            snake = range(snakeStartingPoint, snakeEndingPoint)
             snakeHeadIndex = SNAKE_STARTING_LENGTH
             updateSpeed = SNAKE_STARTING_SPEED
+
             # draw initial snake
             edit = snakeView.begin_edit()
-            for segment in snake:           
-                snakeView.replace(edit,sublime.Region(segment, segment+1), u"\u2588")
-            snakeView.end_edit(edit);       
-            snakeView.show_at_center(snakeStartingPoint)    
-            sublime.set_timeout(lambda: renderSnake(snakeView, snake, snakeHeadIndex, updateSpeed), updateSpeed)
-        else :
+            for segment in snake:
+                segmentRegion = sublime.Region(segment, segment + 1)
+                snakeView.replace(edit, segmentRegion, u"\u2588")
+            snakeView.end_edit(edit)
+            snakeView.show_at_center(snakeStartingPoint)
+            sublime.set_timeout(lambda: renderSnake(snakeView,
+                                                    snake,
+                                                    snakeHeadIndex,
+                                                    updateSpeed), updateSpeed)
+        else:
             SNAKE_ON = False
 
+
 def renderSnake(snakeView, snake, snakeHeadIndex, updateSpeed):
-    global SNAKE_DIRECTION, SNAKE_ON, SNAKE_SCORE       
-    
+    global SNAKE_DIRECTION, SNAKE_ON, SNAKE_SCORE
+
     if SNAKE_ON:
         SNAKE_SCORE = SNAKE_SCORE + 1
         # 'Render' snake
         edit = snakeView.begin_edit()
-        
-        # update tail segment to be new head and draw it, no other cells need to be altered     
+
+        # Get position of cell to be eaten
         newPosX, newPosY = snakeView.rowcol(snake[snakeHeadIndex])
-        if SNAKE_DIRECTION == "right" :
+        if SNAKE_DIRECTION == "right":
             newPosY = newPosY + 1
-        elif SNAKE_DIRECTION == "left" :
+        elif SNAKE_DIRECTION == "left":
             newPosY = newPosY - 1
-        elif SNAKE_DIRECTION == "up" :
+        elif SNAKE_DIRECTION == "up":
             newPosX = newPosX - 1
-        else :
+        else:
             newPosX = newPosX + 1
-        
+
         newPoint = snakeView.text_point(newPosX, newPosY)
-        # scroll to new point
-        snakeView.show_at_center(newPoint)  
+        snakeView.show_at_center(newPoint)
         eatenChar = snakeView.substr(newPoint)
+
         # draw head
-        snakeView.replace(edit, sublime.Region(newPoint, newPoint+1), u"\u2588")
-        # redraw old head
-        snakeView.replace(edit, sublime.Region(snake[snakeHeadIndex], snake[snakeHeadIndex]+1), u"\u2588")
+        newPointRegion = sublime.Region(newPoint, newPoint + 1)
+        snakeView.replace(edit, newPointRegion, u"\u2588")
 
         # see if lost by eating oneself
         for segment in snake:
             if newPoint == segment:
-                sublime.error_message("Game Over!\nYour SNAKE_SCORE was: " + str(SNAKE_SCORE));
+                sublime.error_message("Game Over!\nYour SNAKE_SCORE was: "
+                                        + str(SNAKE_SCORE))
                 SNAKE_ON = False
 
-        if eatenChar == " " : # don't grow
+        if eatenChar == " ":  # don't grow
             tailIndex = snakeHeadIndex + 1
-            if tailIndex >= len(snake) :
-                tailIndex = 0           
-            snakeView.replace(edit, sublime.Region(snake[tailIndex], snake[tailIndex]+1), " ")          
+            if tailIndex >= len(snake):
+                tailIndex = 0
+            tailPos = snake[tailIndex]
+            tailRegion = sublime.Region(tailPos, tailPos + 1)
+            snakeView.replace(edit, tailRegion, " ")
             snakeHeadIndex = tailIndex
             snake[snakeHeadIndex] = newPoint
-        else : #grow snake          
+        else:  # grow snake
             SNAKE_SCORE = SNAKE_SCORE + 1
             snakeHeadIndex = snakeHeadIndex + 1
             snake.insert(snakeHeadIndex, newPoint)
-            if (updateSpeed > 1) :
-                updateSpeed = updateSpeed*SNAKE_SPEED_INCREASE_RATE
-            
+            if (updateSpeed > 1):
+                updateSpeed = updateSpeed * SNAKE_SPEED_INCREASE_RATE
+
         snakeView.end_edit(edit)
-        
+
         sublime.status_message("SNAKE_SCORE: " + str(SNAKE_SCORE))
-        sublime.set_timeout(lambda: renderSnake(snakeView, snake, snakeHeadIndex, updateSpeed), int(updateSpeed))
-    else :
+        sublime.set_timeout(lambda: renderSnake(snakeView,
+                                                snake,
+                                                snakeHeadIndex,
+                                                updateSpeed), int(updateSpeed))
+    else:
         # reset arrow key functionality
         SNAKE_ON = False
         SNAKE_DIRECTION = "right"
