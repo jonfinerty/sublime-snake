@@ -1,5 +1,5 @@
-#   Created by jon finerty - 2013
 #
+#  Created by jon finerty - 2013
 #
 
 import sublime
