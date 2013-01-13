@@ -12,6 +12,8 @@ SNAKE_SCORE = 0
 SNAKE_STARTING_LENGTH = 10
 SNAKE_STARTING_SPEED = 100
 SNAKE_SPEED_INCREASE_RATE = 0.99
+SNAKE_GROWTH_RATE = 4
+SNAKE_GROWTH_PROGRESS = 0
 SNAKE_X_BOUNDARY = 0
 SNAKE_Y_BOUNDARY = 0
 
@@ -26,7 +28,6 @@ SNAKE_TAIL_DOWN = u"\u25B2"
 
 # OVERWRITE ARROW KEYS - but pass through to old commands
 class set_snake_rightCommand(sublime_plugin.TextCommand):
-
     def run(self, edit):
         global SNAKE_DIRECTION
         if SNAKE_DIRECTION != 'left':
@@ -174,7 +175,7 @@ class SnakeCommand(sublime_plugin.TextCommand):
 
 def renderSnake(snakeView, snake, snakeHeadIndex, updateSpeed):
     global SNAKE_DIRECTION, SNAKE_ON, SNAKE_SCORE, SNAKE_X_BOUNDARY, SNAKE_X_BOUNDARY
-    global SNAKE_SEGMENT, SNAKE_HEAD
+    global SNAKE_GROWTH_RATE, SNAKE_GROWTH_PROGRESS
 
     if SNAKE_ON:
         SNAKE_SCORE = SNAKE_SCORE + 1
@@ -193,9 +194,6 @@ def renderSnake(snakeView, snake, snakeHeadIndex, updateSpeed):
         else:
             newPosX = newPosX + 1
 
-        # check boundary lose conditions
-        if (newPosX >= SNAKE_X_BOUNDARY or newPosY >= SNAKE_Y_BOUNDARY):
-            gameOver()
         newPoint = snakeView.text_point(newPosX, newPosY)
 
         snakeView.show_at_center(newPoint)
@@ -210,10 +208,19 @@ def renderSnake(snakeView, snake, snakeHeadIndex, updateSpeed):
         oldHeadRegion = sublime.Region(oldHeadPoint, oldHeadPoint + 1)
         snakeView.replace(edit, oldHeadRegion, SNAKE_SEGMENT)
 
+        # DEATH CONDITIONS
+        # check boundary lose conditions
+        if (newPosX >= SNAKE_X_BOUNDARY or newPosY >= SNAKE_Y_BOUNDARY):
+            gameOver()
+
         # see if lost by eating oneself
         for segment in snake:
             if newPoint == segment:
                 gameOver()
+
+        # see if eaten a wall
+        if eatenChar == "\n":
+            gameOver()
 
         if eatenChar == " ":  # don't grow
             tailIndex = snakeHeadIndex + 1
@@ -237,8 +244,6 @@ def renderSnake(snakeView, snake, snakeHeadIndex, updateSpeed):
             # update head index
             snakeHeadIndex = tailIndex
             snake[snakeHeadIndex] = newPoint
-        elif eatenChar == "\n":  # eaten a wall, die
-            gameOver()
         else:  # grow snake
             SNAKE_SCORE = SNAKE_SCORE + 1
             snakeHeadIndex = snakeHeadIndex + 1
