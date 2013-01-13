@@ -20,7 +20,8 @@ SNAKE_Y_BOUNDARY = 0
 
 # AMAZING SNAKE GRAPHICS
 SNAKE_HEAD = u"\u25CF"
-SNAKE_SEGMENT = u"\u2588"
+SNAKE_VERTICAL_SEGMENT = u"\u2588"
+SNAKE_HORIZONTAL_SEGMENT = u"\u25A0"
 SNAKE_TAIL_LEFT = u"\u25BA"
 SNAKE_TAIL_RIGHT = u"\u25C4"
 SNAKE_TAIL_UP = u"\u25BC"
@@ -164,7 +165,7 @@ class SnakeCommand(sublime_plugin.TextCommand):
             # draw initial snake
             drawSnakeTail(snakeView, snake[0], snake[1])
             for segment in snake[1:-1]:
-                drawSnakeSegment(snakeView, segment)
+                editPosition(snakeView, segment, SNAKE_HORIZONTAL_SEGMENT)
             drawSnakeHead(snakeView, snake[-1])
             snakeView.show_at_center(snakeStartingPoint)
 
@@ -205,9 +206,9 @@ def renderSnake(snakeView, snake, snakeHeadIndex, updateSpeed):
         # draw new head
         drawSnakeHead(snakeView, newPoint)
 
-        # redraw old head
+        # redraw over old head
         oldHeadPoint = snake[snakeHeadIndex]
-        drawSnakeSegment(snakeView, oldHeadPoint)
+        drawSnakeSegment(snakeView, oldHeadPoint, newPoint, snake[snakeHeadIndex - 1])
 
         # DEATH CONDITIONS
         # check boundary lose conditions
@@ -289,9 +290,16 @@ def drawSnakeTail(snakeView, tailPos, nextSegPos):
         editPosition(snakeView, tailPos, SNAKE_TAIL_LEFT)
 
 
-def drawSnakeSegment(snakeView, segPos):
+def drawSnakeSegment(snakeView, segPos, prevPos, nextPos):
     global SNAKE_SEGMENT
-    editPosition(snakeView, segPos, SNAKE_SEGMENT)
+    # this will need expanding for snake corners
+    prevX, prevY = snakeView.rowcol(prevPos)
+    nextX, nextY = snakeView.rowcol(nextPos)
+    segX, segY = snakeView.rowcol(segPos)
+    if segY == prevY and segY == nextY:
+        editPosition(snakeView, segPos, SNAKE_VERTICAL_SEGMENT)
+    else:
+        editPosition(snakeView, segPos, SNAKE_HORIZONTAL_SEGMENT)
 
 
 def drawSnakeHead(snakeView, headPos):
