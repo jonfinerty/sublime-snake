@@ -17,7 +17,9 @@ To use this plugin in sublime you will need to download the source files into a 
 
 ## Using
 
-To play a game of snake press: <pre>ctrl + shift + alt + s</pre> To stop either lose, or hit that key combination again.
+To play a game of snake press on Windows/Linux: <pre>ctrl + shift + alt + s</pre> Or on OSX: <pre>command + shift + alt + s</pre>
+
+To stop either lose, or hit that key combination again.
 
 Use the arrow keys to navigate.
 
