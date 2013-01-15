@@ -7,7 +7,7 @@ Snake for Sublime Text 2
 
 Ever been frustated with your code? Broken the build? It just won't compile?
 
-Make that source code pay - by eating it with a snake, obviously.
+Make that source code pay - by eating it with a snake. Obviously.
 
 The more code you eat the longer your snake grows. 
 
@@ -17,7 +17,7 @@ To use this plugin in sublime you will need to download the source files into a 
 
 ## Using
 
-To play a game of snake press on Windows/Linux: <pre>ctrl + shift + alt + s</pre> Or on OSX: <pre>command + shift + alt + s</pre>
+To play a game of snake on Windows/Linux press: <pre>ctrl + shift + alt + s</pre> Or on OSX: <pre>command + shift + alt + s</pre>
 
 To stop either lose, or hit that key combination again.
 
@@ -29,15 +29,18 @@ Use the arrow keys to navigate.
 * get added to package manager
 * apples!
 * wrap around edges
-* make bottom of code more obvious
+* -make bottom of code more obvious-
 * snake colour
 * make vertical speed consistent with horizontal
+* settings file to allow people to customise their games
 
 ## Disclaimer?!
 
 Don't worry this plugin will make a copy of your code and leave the original alone. 
 
-That being said don't blame me if anything goes wrong.
+If you find your arrow keys not working, try restarting sublime. If all else fails log an issue and/or disable this plugin.
+
+That being said don't blame me if anything goes too wrong.
 
 Created by Jon Finerty
 
