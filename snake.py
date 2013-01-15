@@ -96,11 +96,14 @@ class SnakeCommand(sublime_plugin.TextCommand):
             window = templateView.window()
 
             # Set up copy of current window, so work is not lost.
+            # grab current file info
             entireFileRegion = sublime.Region(0, templateView.size())
             fileText = templateView.substr(entireFileRegion)
             syntax = templateView.settings().get('syntax')
             pos = templateView.sel()
             tabSize = templateView.settings().get('tab_size')
+            wrap_width = templateView.settings().get("wrap_width")
+            word_wrap = templateView.settings().get("word_wrap")
 
             # copy across and set syntax
             snakeView = window.new_file()
@@ -111,6 +114,22 @@ class SnakeCommand(sublime_plugin.TextCommand):
             snakeView.insert(edit, 0, fileText + "\n")
             snakeView.end_edit(edit)
             snakeView.set_syntax_file(syntax)
+
+            # replace word wrap with newlines
+            if word_wrap == True:
+                if wrap_width == 0:
+                    wrap_width = int(snakeView.viewport_extent()[0] / snakeView.em_width())
+                edit = snakeView.begin_edit()
+                entireSnakeViewRegion = sublime.Region(0, snakeView.size())
+                lines = snakeView.split_by_newlines(entireSnakeViewRegion)
+                adjustment = 0
+                for line in lines:
+                    position = wrap_width
+                    while position < line.size():
+                        snakeView.insert(edit, line.a + position - 1, "\n")
+                        adjustment = adjustment + 1
+                        position = position + wrap_width
+                snakeView.end_edit(edit)
 
             # replace tabs with spaces
             edit = snakeView.begin_edit()
@@ -131,7 +150,7 @@ class SnakeCommand(sublime_plugin.TextCommand):
                 if line.size() > maxLineLength:
                     maxLineLength = line.size()
 
-            # add on nessacary space to end of lines
+            # add on necessary space to end of lines
             edit = snakeView.begin_edit()
             totalPaddingOffset = 0
             for line in lines:
