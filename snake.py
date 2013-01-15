@@ -116,7 +116,7 @@ class SnakeCommand(sublime_plugin.TextCommand):
             snakeView.set_syntax_file(syntax)
 
             # replace word wrap with newlines
-            if word_wrap == True:
+            if word_wrap == True or word_wrap == "auto":
                 if wrap_width == 0:
                     wrap_width = int(snakeView.viewport_extent()[0] / snakeView.em_width())
                 edit = snakeView.begin_edit()
