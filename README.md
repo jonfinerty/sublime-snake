@@ -13,7 +13,9 @@ The more code you eat the longer your snake grows.
 
 ## Installing
 
-To use this plugin in sublime you will need to download the source files into a folder within your sublime text 2 packages directory (Preferences -> Browse Packages...)
+You can now install this plugin using [Sublime Package Manager!](http://wbond.net/sublime_packages/package_control), search for 'snake' under packages.
+
+You can install it manually if you wish, you will need to download the source files into a folder within your sublime text 2 packages directory (Preferences -> Browse Packages...)
 
 ## Using
 
