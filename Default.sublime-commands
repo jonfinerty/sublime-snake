@@ -1,0 +1,6 @@
+[
+	{
+		"caption": "Snake: Start Game",
+		"command": "snake_start_game"
+	}
+]

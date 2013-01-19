@@ -1,9 +1,26 @@
 [
 	{
-		"keys": ["ctrl+shift+alt+s"], "command": "snake"
+		"keys": ["ctrl+shift+alt+s"],
+		"command": "snake_start_game"
 	},
-	{ "keys": ["left"], "command": "set_snake_left" },
-	{ "keys": ["right"], "command": "set_snake_right" },
-	{ "keys": ["up"], "command": "set_snake_up" },
-	{ "keys": ["down"], "command": "set_snake_down" }
+	{
+		"keys": ["left"],
+		"command": "set_snake_left",
+		"context": [{"key": "snake_running"}]
+	},
+	{
+		"keys": ["right"],
+		"command": "set_snake_right",
+		"context": [{"key": "snake_running"}]
+	},
+	{
+		"keys": ["up"],
+		"command": "set_snake_up",        
+		"context": [{"key": "snake_running"}]
+	},
+	{
+		"keys": ["down"],
+		"command": "set_snake_down",        
+		"context": [{"key": "snake_running"}]
+	}
 ]

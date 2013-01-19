@@ -28,17 +28,22 @@ SNAKE_TAIL_UP = u"\u25BC"
 SNAKE_TAIL_DOWN = u"\u25B2"
 
 
-# OVERWRITE ARROW KEYS - but pass through to old commands
+# Fancy new movement key event listener
+class snakeEventListener(sublime_plugin.EventListener):
+    def on_query_context(self, view, key, operator, operand, match_all):
+        global SNAKE_ON
+        if key == "snake_running":
+            if SNAKE_ON:
+                return True
+        return False
+
+
+# commands for registering turn intentions
 class set_snake_rightCommand(sublime_plugin.TextCommand):
     def run(self, edit):
         global SNAKE_DIRECTION, SNAKE_INTENDED_DIRECTION
         if SNAKE_DIRECTION != 'left':
             SNAKE_INTENDED_DIRECTION = 'right'
-        if SNAKE_ON == False:
-            self.view.run_command("move", {
-                                    "by": "characters",
-                                    "forward": True
-                                 })
 
 
 class set_snake_leftCommand(sublime_plugin.TextCommand):
@@ -46,11 +51,6 @@ class set_snake_leftCommand(sublime_plugin.TextCommand):
         global SNAKE_DIRECTION, SNAKE_INTENDED_DIRECTION
         if SNAKE_DIRECTION != 'right':
             SNAKE_INTENDED_DIRECTION = 'left'
-        if SNAKE_ON == False:
-            self.view.run_command("move", {
-                                    "by": "characters",
-                                    "forward": False
-                                 })
 
 
 class set_snake_upCommand(sublime_plugin.TextCommand):
@@ -58,11 +58,6 @@ class set_snake_upCommand(sublime_plugin.TextCommand):
         global SNAKE_DIRECTION, SNAKE_INTENDED_DIRECTION
         if SNAKE_DIRECTION != 'down':
             SNAKE_INTENDED_DIRECTION = 'up'
-        if SNAKE_ON == False:
-            self.view.run_command("move", {
-                                    "by": "lines",
-                                    "forward": False
-                                 })
 
 
 class set_snake_downCommand(sublime_plugin.TextCommand):
@@ -70,14 +65,9 @@ class set_snake_downCommand(sublime_plugin.TextCommand):
         global SNAKE_DIRECTION, SNAKE_INTENDED_DIRECTION
         if SNAKE_DIRECTION != 'up':
             SNAKE_INTENDED_DIRECTION = 'down'
-        if SNAKE_ON == False:
-            self.view.run_command("move", {
-                                    "by": "lines",
-                                    "forward": True
-                                 })
 
 
-class SnakeCommand(sublime_plugin.TextCommand):
+class snake_start_gameCommand(sublime_plugin.TextCommand):
     def run(self, edit):
         global SNAKE_ON, SNAKE_SCORE, SNAKE_X_BOUNDARY, SNAKE_Y_BOUNDARY
         global SNAKE_DIRECTION, SNAKE_INTENDED_DIRECTION, SNAKE_GROWTH_PROGRESS
