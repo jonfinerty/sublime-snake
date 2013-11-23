@@ -44,6 +44,6 @@ If you find your arrow keys not working, try restarting sublime. If all else fai
 
 That being said don't blame me if anything goes too wrong.
 
-Created by Jon Finerty
+Created by Jon Finerty - [jonathanfinerty.com](http://www.jonathanfinerty.com)
 
 P.S. I'm tired of these motherfucking snakes in my motherfucking code.
