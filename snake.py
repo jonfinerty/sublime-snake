@@ -78,7 +78,7 @@ class snake_start_gameCommand(sublime_plugin.TextCommand):
         SNAKE_INTENDED_DIRECTION = "right"
         SNAKE_GROWTH_PROGRESS = 0
 
-        if SNAKE_ON == False:
+        if not SNAKE_ON:
 
             SNAKE_ON = True
 
@@ -104,9 +104,10 @@ class snake_start_gameCommand(sublime_plugin.TextCommand):
             snakeView.set_syntax_file(syntax)
 
             # replace word wrap with newlines
-            if word_wrap == True or word_wrap == "auto":
+            if word_wrap or word_wrap == "auto":
                 if wrap_width == 0:
-                    wrap_width = int(snakeView.viewport_extent()[0] / snakeView.em_width())
+                    lineLength = snakeView.viewport_extent()[0]
+                    wrap_width = int(lineLength / snakeView.em_width())
                 entireSnakeViewRegion = sublime.Region(0, snakeView.size())
                 lines = snakeView.split_by_newlines(entireSnakeViewRegion)
                 adjustment = 0
@@ -115,16 +116,16 @@ class snake_start_gameCommand(sublime_plugin.TextCommand):
                     while position < line.size():
                         snakeView.insert(edit, line.a + position - 1, "\n")
                         adjustment = adjustment + 1
-                        position = position + wrap_width                
+                        position = position + wrap_width
 
-            # replace tabs with spaces            
+            # replace tabs with spaces
             snakeStartingX, snakeStartingY = snakeView.rowcol(pos[0].a)
             # expand tabs tends to break stuff, check for tabs first?
             tabs = snakeView.find_all("\t")
             tabReplacement = " " * tabSize
             for tab in tabs:
                 tabActualLocation = snakeView.find("\t", tab.a)
-                snakeView.replace(edit, tabActualLocation, tabReplacement)            
+                snakeView.replace(edit, tabActualLocation, tabReplacement)
 
             # find longest line
             entireSnakeViewRegion = sublime.Region(0, snakeView.size())
@@ -140,25 +141,23 @@ class snake_start_gameCommand(sublime_plugin.TextCommand):
                 paddingSize = (maxLineLength - line.size()) + 1
                 paddingString = (" " * (paddingSize - 1)) + "|"
                 snakeView.insert(edit,
-                                line.b + totalPaddingOffset,
-                                paddingString)
+                                 line.b + totalPaddingOffset,
+                                 paddingString)
                 totalPaddingOffset = totalPaddingOffset + paddingSize
 
             # set word wrap to maximum line length, otherwise pain
             snakeView.settings().set("wrap_width", 0)
             snakeView.settings().set("word_wrap", False)
 
-            # Add border to bottom of code so its more obvious        
+            # Add border to bottom of code so its more obvious
             SNAKE_Y_BOUNDARY = maxLineLength
             SNAKE_X_BOUNDARY = len(lines)
             bottomBorder = ("_" * maxLineLength) + "|\n"
-            snakeView.insert(edit, snakeView.size(), bottomBorder)            
+            snakeView.insert(edit, snakeView.size(), bottomBorder)
 
             # Create default snake -
             # consists of a set of positions (stored as text_points)
-            snakeStartingPoint = snakeView.text_point(
-                                    snakeStartingX,
-                                    0)
+            snakeStartingPoint = snakeView.text_point(snakeStartingX, 0)
             snakeEndingPoint = snakeStartingPoint + SNAKE_STARTING_LENGTH + 1
             snake = list(range(snakeStartingPoint, snakeEndingPoint))
             snakeHeadIndex = SNAKE_STARTING_LENGTH
@@ -167,7 +166,10 @@ class snake_start_gameCommand(sublime_plugin.TextCommand):
             # draw initial snake
             drawSnakeTail(edit, snakeView, snake[0], snake[1])
             for segment in snake[1:-1]:
-                editPosition(edit, snakeView, segment, SNAKE_HORIZONTAL_SEGMENT)
+                editPosition(edit,
+                             snakeView,
+                             segment,
+                             SNAKE_HORIZONTAL_SEGMENT)
             drawSnakeHead(edit, snakeView, snake[-1])
             snakeView.show_at_center(snakeStartingPoint)
 
@@ -183,7 +185,8 @@ class snake_start_gameCommand(sublime_plugin.TextCommand):
 
 def renderSnake(edit, snakeView, snake, snakeHeadIndex, updateSpeed):
     global SNAKE_ON, SNAKE_SCORE, SNAKE_X_BOUNDARY, SNAKE_X_BOUNDARY
-    global SNAKE_GROWTH_RATE, SNAKE_GROWTH_PROGRESS, SNAKE_DIRECTION, SNAKE_INTENDED_DIRECTION
+    global SNAKE_GROWTH_RATE, SNAKE_GROWTH_PROGRESS
+    global SNAKE_DIRECTION, SNAKE_INTENDED_DIRECTION
 
     if SNAKE_ON:
         SNAKE_SCORE = SNAKE_SCORE + 1
@@ -211,7 +214,11 @@ def renderSnake(edit, snakeView, snake, snakeHeadIndex, updateSpeed):
 
         # redraw over old head
         oldHeadPoint = snake[snakeHeadIndex]
-        drawSnakeSegment(edit, snakeView, oldHeadPoint, newPoint, snake[snakeHeadIndex - 1])
+        drawSnakeSegment(edit,
+                         snakeView,
+                         oldHeadPoint,
+                         newPoint,
+                         snake[snakeHeadIndex - 1])
 
         # DEATH CONDITIONS
         # check boundary lose conditions
@@ -227,7 +234,8 @@ def renderSnake(edit, snakeView, snake, snakeHeadIndex, updateSpeed):
         if eatenChar == "\n":
             gameOver()
 
-        if eatenChar != " " and SNAKE_GROWTH_PROGRESS == (SNAKE_GROWTH_RATE - 1):  # grow snake
+        if eatenChar != " " and SNAKE_GROWTH_PROGRESS == (SNAKE_GROWTH_RATE-1):
+            # grow snake
             SNAKE_SCORE = SNAKE_SCORE + 1
             snakeHeadIndex = snakeHeadIndex + 1
             snake.insert(snakeHeadIndex, newPoint)
@@ -253,7 +261,10 @@ def renderSnake(edit, snakeView, snake, snakeHeadIndex, updateSpeed):
             else:
                 newTailContext = newTailIndex + 1
 
-            drawSnakeTail(edit, snakeView, snake[newTailIndex], snake[newTailContext])
+            drawSnakeTail(edit,
+                          snakeView,
+                          snake[newTailIndex],
+                          snake[newTailContext])
 
             # update head index
             snakeHeadIndex = tailIndex
