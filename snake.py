@@ -100,16 +100,13 @@ class snake_start_gameCommand(sublime_plugin.TextCommand):
             snakeView.set_scratch(True)
             snakeView.set_name("SNAKE")
             window.focus_view(snakeView)
-            edit = snakeView.begin_edit()
             snakeView.insert(edit, 0, fileText + "\n")
-            snakeView.end_edit(edit)
             snakeView.set_syntax_file(syntax)
 
             # replace word wrap with newlines
             if word_wrap == True or word_wrap == "auto":
                 if wrap_width == 0:
                     wrap_width = int(snakeView.viewport_extent()[0] / snakeView.em_width())
-                edit = snakeView.begin_edit()
                 entireSnakeViewRegion = sublime.Region(0, snakeView.size())
                 lines = snakeView.split_by_newlines(entireSnakeViewRegion)
                 adjustment = 0
@@ -118,19 +115,16 @@ class snake_start_gameCommand(sublime_plugin.TextCommand):
                     while position < line.size():
                         snakeView.insert(edit, line.a + position - 1, "\n")
                         adjustment = adjustment + 1
-                        position = position + wrap_width
-                snakeView.end_edit(edit)
+                        position = position + wrap_width                
 
-            # replace tabs with spaces
-            edit = snakeView.begin_edit()
+            # replace tabs with spaces            
             snakeStartingX, snakeStartingY = snakeView.rowcol(pos[0].a)
             # expand tabs tends to break stuff, check for tabs first?
             tabs = snakeView.find_all("\t")
             tabReplacement = " " * tabSize
             for tab in tabs:
                 tabActualLocation = snakeView.find("\t", tab.a)
-                snakeView.replace(edit, tabActualLocation, tabReplacement)
-            snakeView.end_edit(edit)
+                snakeView.replace(edit, tabActualLocation, tabReplacement)            
 
             # find longest line
             entireSnakeViewRegion = sublime.Region(0, snakeView.size())
@@ -141,7 +135,6 @@ class snake_start_gameCommand(sublime_plugin.TextCommand):
                     maxLineLength = line.size()
 
             # add on necessary space to end of lines
-            edit = snakeView.begin_edit()
             totalPaddingOffset = 0
             for line in lines:
                 paddingSize = (maxLineLength - line.size()) + 1
@@ -150,19 +143,16 @@ class snake_start_gameCommand(sublime_plugin.TextCommand):
                                 line.b + totalPaddingOffset,
                                 paddingString)
                 totalPaddingOffset = totalPaddingOffset + paddingSize
-            snakeView.end_edit(edit)
 
             # set word wrap to maximum line length, otherwise pain
             snakeView.settings().set("wrap_width", 0)
             snakeView.settings().set("word_wrap", False)
 
-            # Add border to bottom of code so its more obvious
-            edit = snakeView.begin_edit()
+            # Add border to bottom of code so its more obvious        
             SNAKE_Y_BOUNDARY = maxLineLength
             SNAKE_X_BOUNDARY = len(lines)
             bottomBorder = ("_" * maxLineLength) + "|\n"
-            snakeView.insert(edit, snakeView.size(), bottomBorder)
-            snakeView.end_edit(edit)
+            snakeView.insert(edit, snakeView.size(), bottomBorder)            
 
             # Create default snake -
             # consists of a set of positions (stored as text_points)
@@ -170,19 +160,20 @@ class snake_start_gameCommand(sublime_plugin.TextCommand):
                                     snakeStartingX,
                                     0)
             snakeEndingPoint = snakeStartingPoint + SNAKE_STARTING_LENGTH + 1
-            snake = range(snakeStartingPoint, snakeEndingPoint)
+            snake = list(range(snakeStartingPoint, snakeEndingPoint))
             snakeHeadIndex = SNAKE_STARTING_LENGTH
             updateSpeed = SNAKE_STARTING_SPEED
 
             # draw initial snake
-            drawSnakeTail(snakeView, snake[0], snake[1])
+            drawSnakeTail(edit, snakeView, snake[0], snake[1])
             for segment in snake[1:-1]:
-                editPosition(snakeView, segment, SNAKE_HORIZONTAL_SEGMENT)
-            drawSnakeHead(snakeView, snake[-1])
+                editPosition(edit, snakeView, segment, SNAKE_HORIZONTAL_SEGMENT)
+            drawSnakeHead(edit, snakeView, snake[-1])
             snakeView.show_at_center(snakeStartingPoint)
 
             # start snake update timeout loop
-            sublime.set_timeout(lambda: renderSnake(snakeView,
+            sublime.set_timeout(lambda: renderSnake(edit,
+                                                    snakeView,
                                                     snake,
                                                     snakeHeadIndex,
                                                     updateSpeed), updateSpeed)
@@ -190,7 +181,7 @@ class snake_start_gameCommand(sublime_plugin.TextCommand):
             SNAKE_ON = False
 
 
-def renderSnake(snakeView, snake, snakeHeadIndex, updateSpeed):
+def renderSnake(edit, snakeView, snake, snakeHeadIndex, updateSpeed):
     global SNAKE_ON, SNAKE_SCORE, SNAKE_X_BOUNDARY, SNAKE_X_BOUNDARY
     global SNAKE_GROWTH_RATE, SNAKE_GROWTH_PROGRESS, SNAKE_DIRECTION, SNAKE_INTENDED_DIRECTION
 
@@ -216,11 +207,11 @@ def renderSnake(snakeView, snake, snakeHeadIndex, updateSpeed):
         eatenChar = snakeView.substr(newPoint)
 
         # draw new head
-        drawSnakeHead(snakeView, newPoint)
+        drawSnakeHead(edit, snakeView, newPoint)
 
         # redraw over old head
         oldHeadPoint = snake[snakeHeadIndex]
-        drawSnakeSegment(snakeView, oldHeadPoint, newPoint, snake[snakeHeadIndex - 1])
+        drawSnakeSegment(edit, snakeView, oldHeadPoint, newPoint, snake[snakeHeadIndex - 1])
 
         # DEATH CONDITIONS
         # check boundary lose conditions
@@ -250,7 +241,7 @@ def renderSnake(snakeView, snake, snakeHeadIndex, updateSpeed):
             if tailIndex >= len(snake):
                 tailIndex = 0
             # clear old tail
-            clearPosition(snakeView, snake[tailIndex])
+            clearPosition(edit, snakeView, snake[tailIndex])
 
             # draw new tail
             if tailIndex + 1 >= len(snake):
@@ -262,14 +253,15 @@ def renderSnake(snakeView, snake, snakeHeadIndex, updateSpeed):
             else:
                 newTailContext = newTailIndex + 1
 
-            drawSnakeTail(snakeView, snake[newTailIndex], snake[newTailContext])
+            drawSnakeTail(edit, snakeView, snake[newTailIndex], snake[newTailContext])
 
             # update head index
             snakeHeadIndex = tailIndex
             snake[snakeHeadIndex] = newPoint
 
         sublime.status_message("SNAKE_SCORE: " + str(SNAKE_SCORE))
-        sublime.set_timeout(lambda: renderSnake(snakeView,
+        sublime.set_timeout(lambda: renderSnake(edit,
+                                                snakeView,
                                                 snake,
                                                 snakeHeadIndex,
                                                 updateSpeed), int(updateSpeed))
@@ -286,45 +278,49 @@ def gameOver():
     SNAKE_ON = False
 
 
-def drawSnakeTail(snakeView, tailPos, nextSegPos):
+def drawSnakeTail(edit, snakeView, tailPos, nextSegPos):
     global SNAKE_TAIL
     # work out how tail joins to body, to pick correct
     # orientation tail graphics
     tailX, tailY = snakeView.rowcol(tailPos)
     segX, segY = snakeView.rowcol(nextSegPos)
     if segX > tailX:
-        editPosition(snakeView, tailPos, SNAKE_TAIL_DOWN)
+        editPosition(edit, snakeView, tailPos, SNAKE_TAIL_DOWN)
     elif segX < tailX:
-        editPosition(snakeView, tailPos, SNAKE_TAIL_UP)
+        editPosition(edit, snakeView, tailPos, SNAKE_TAIL_UP)
     elif segY > tailY:
-        editPosition(snakeView, tailPos, SNAKE_TAIL_RIGHT)
+        editPosition(edit, snakeView, tailPos, SNAKE_TAIL_RIGHT)
     else:
-        editPosition(snakeView, tailPos, SNAKE_TAIL_LEFT)
+        editPosition(edit, snakeView, tailPos, SNAKE_TAIL_LEFT)
 
 
-def drawSnakeSegment(snakeView, segPos, prevPos, nextPos):
+def drawSnakeSegment(edit, snakeView, segPos, prevPos, nextPos):
     global SNAKE_SEGMENT
     # this will need expanding for snake corners
     prevX, prevY = snakeView.rowcol(prevPos)
     nextX, nextY = snakeView.rowcol(nextPos)
     segX, segY = snakeView.rowcol(segPos)
     if segY == prevY and segY == nextY:
-        editPosition(snakeView, segPos, SNAKE_VERTICAL_SEGMENT)
+        editPosition(edit, snakeView, segPos, SNAKE_VERTICAL_SEGMENT)
     else:
-        editPosition(snakeView, segPos, SNAKE_HORIZONTAL_SEGMENT)
+        editPosition(edit, snakeView, segPos, SNAKE_HORIZONTAL_SEGMENT)
 
 
-def drawSnakeHead(snakeView, headPos):
+def drawSnakeHead(edit, snakeView, headPos):
     global SNAKE_HEAD
-    editPosition(snakeView, headPos, SNAKE_HEAD)
+    editPosition(edit, snakeView, headPos, SNAKE_HEAD)
 
 
-def clearPosition(snakeView, position):
-    editPosition(snakeView, position, " ")
+def clearPosition(edit, snakeView, position):
+    editPosition(edit, snakeView, position, " ")
 
 
-def editPosition(snakeView, position, symbol):
-    edit = snakeView.begin_edit()
-    region = sublime.Region(position, position + 1)
-    snakeView.replace(edit, region, symbol)
-    snakeView.end_edit(edit)
+def editPosition(edit, snakeView, position, symbol):
+    snakeView.run_command('edit_snake_position',
+                          {'position': position, 'symbol': symbol})
+
+
+class edit_snake_positionCommand(sublime_plugin.TextCommand):
+    def run(self, edit, position, symbol):
+        region = sublime.Region(position, position + 1)
+        self.view.replace(edit, region, symbol)
